@@ -292,6 +292,17 @@ def search_books(
         .all()
     )
 
+@app.get("/books/genre/{genre}", response_model=list[BookResponse])
+def get_books_by_genre(
+    genre: str,
+    db: Session = Depends(get_db)
+):
+    return (
+        db.query(Book)
+        .filter(Book.genre == genre)
+        .all()
+    )
+
 @app.post("/authors/", response_model=AuthorResponse, status_code=status.HTTP_201_CREATED)
 def create_author(author: AuthorCreate, db: Session = Depends(get_db)):
     new_author = Author(**author.model_dump())
