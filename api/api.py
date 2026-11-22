@@ -206,14 +206,7 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
     db.refresh(new_book)
     return new_book
 
-@app.get("/books/{isbn}", response_model=BookResponse, status_code=status.HTTP_200_OK)
-def get_book(isbn: str, db: Session = Depends(get_db)):
-    book = db.query(Book).filter(Book.isbn == isbn).first()
 
-    if not book:
-        raise HTTPException(status_code=404, detail="Book not found!")
-
-    return book
 
 @app.get("/books/", response_model=list[BookResponse], status_code=status.HTTP_200_OK)
 def browse_books(
@@ -302,6 +295,15 @@ def get_books_by_genre(
         .filter(Book.genre == genre)
         .all()
     )
+
+@app.get("/books/{isbn}", response_model=BookResponse, status_code=status.HTTP_200_OK)
+def get_book(isbn: str, db: Session = Depends(get_db)):
+    book = db.query(Book).filter(Book.isbn == isbn).first()
+
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found!")
+
+    return book
 
 @app.post("/authors/", response_model=AuthorResponse, status_code=status.HTTP_201_CREATED)
 def create_author(author: AuthorCreate, db: Session = Depends(get_db)):
