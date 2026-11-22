@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from db.db import SessionLocal, User, CreditCard, Author, Book, CartItem, Rating, Comment, Wishlist, WishlistItem
 
+
 # API Init and Conn with DB
 app = FastAPI()
 
