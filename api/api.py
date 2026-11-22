@@ -267,8 +267,8 @@ def browse_books(
 
     return query.all()
 
-@app.get("/books/bestsellers", response_model=list[BookResponse], status_code=status.HTTP_200_OK)
-def get_bestsellers(
+@app.get("/books/top-sellers", response_model=list[BookResponse])
+def get_top_sellers(
     limit: int = 10,
     db: Session = Depends(get_db)
 ):
