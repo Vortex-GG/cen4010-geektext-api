@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -212,6 +212,83 @@ def get_book(isbn: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Book not found!")
 
     return book
+
+@app.get("/books/", response_model=list[BookResponse], status_code=status.HTTP_200_OK)
+def browse_books(
+    genre: str | None = None,
+    author_id: int | None = None,
+    sort_by: str | None = Query(
+        None,
+        description="name, price, year_published, copies_sold"
+    ),
+    order: str = Query(
+        "asc",
+        description="asc or desc"
+    ),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Book)
+
+    # Filters
+    if genre:
+        query = query.filter(Book.genre == genre)
+
+    if author_id:
+        query = query.filter(Book.author_id == author_id)
+
+    # Sorting
+    if sort_by == "name":
+        query = query.order_by(
+            Book.name.asc()
+            if order == "asc"
+            else Book.name.desc()
+        )
+
+    elif sort_by == "price":
+        query = query.order_by(
+            Book.price.asc()
+            if order == "asc"
+            else Book.price.desc()
+        )
+
+    elif sort_by == "year_published":
+        query = query.order_by(
+            Book.year_published.asc()
+            if order == "asc"
+            else Book.year_published.desc()
+        )
+
+    elif sort_by == "copies_sold":
+        query = query.order_by(
+            Book.copies_sold.asc()
+            if order == "asc"
+            else Book.copies_sold.desc()
+        )
+
+    return query.all()
+
+@app.get("/books/bestsellers", response_model=list[BookResponse], status_code=status.HTTP_200_OK)
+def get_bestsellers(
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    return (
+        db.query(Book)
+        .order_by(Book.copies_sold.desc())
+        .limit(limit)
+        .all()
+    )
+
+@app.get("/books/search/", response_model=list[BookResponse], status_code=status.HTTP_200_OK)
+def search_books(
+    query: str,
+    db: Session = Depends(get_db)
+):
+    return (
+        db.query(Book)
+        .filter(Book.name.ilike(f"%{query}%"))
+        .all()
+    )
 
 @app.post("/authors/", response_model=AuthorResponse, status_code=status.HTTP_201_CREATED)
 def create_author(author: AuthorCreate, db: Session = Depends(get_db)):
